@@ -64,11 +64,20 @@ class Orchestrator:
         logger.info(f"[{phone}] analysis: {analysis.intent} | "
                     f"{analysis.suggested_action} | urgency={analysis.urgency}")
 
-        # 4. store any extracted facts + action items right away (memory grows even if we don't reply)
+        # 4. store extracted facts + action items + auto-update profile language/style
         if analysis.extracted_facts:
             self.memory.store_extracted_facts(phone, analysis.extracted_facts, msg.timestamp)
         if analysis.action_items:
             self.memory.store_pending_actions(phone, analysis.action_items)
+        # persist detected language to profile so future replies stay consistent
+        if analysis.detected_language and analysis.detected_language != "english":
+            if not profile.preferred_language:
+                self.memory.profile.update_profile(
+                    phone, preferred_language=analysis.detected_language
+                )
+        # auto-set contact name if we got one and don't have it yet
+        if msg.contact_name and not profile.name:
+            self.memory.profile.update_profile(phone, name=msg.contact_name)
 
         # 5. decide what to do
         action: Action = analysis.suggested_action

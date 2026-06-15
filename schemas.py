@@ -18,6 +18,8 @@ class IncomingMessage(BaseModel):
     group_name: Optional[str] = None
     message_id: Optional[str] = None
     media_url: Optional[str] = None
+    media_type: Optional[str] = None   # e.g. "image/jpeg"
+    media_data: Optional[str] = None   # base64-encoded bytes
 
 
 class OutgoingReply(BaseModel):
@@ -48,6 +50,14 @@ class MessageAnalysis(BaseModel):
     extracted_facts: list[str] = Field(
         default_factory=list,
         description="Atomic facts about the contact worth remembering"
+    )
+    detected_language: str = Field(
+        default="english",
+        description="Language of the incoming message: english, hindi, hinglish, or other"
+    )
+    image_description: Optional[str] = Field(
+        default=None,
+        description="What the image shows, if a media message was sent"
     )
     suggested_action: Action
     reasoning: str

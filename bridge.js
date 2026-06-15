@@ -67,14 +67,29 @@ client.on('message', async (msg) => {
     try { groupName = chatCache.get(phone)?.name || null; } catch {}
   }
 
+  // Download media (images, docs, etc.) and send as base64
+  let mediaType = null;
+  let mediaData = null;
+  if (msg.hasMedia) {
+    try {
+      const media = await msg.downloadMedia();
+      mediaType = media.mimetype;
+      mediaData = media.data; // already base64
+    } catch (err) {
+      console.warn('Failed to download media:', err.message);
+    }
+  }
+
   try {
     await axios.post(AGENT_WEBHOOK_URL, {
       phone,
       name,
-      text:       msg.body,
+      text:       msg.body || '',
       message_id: msg.id._serialized,
       is_group:   isGroup,
       group_name: groupName,
+      media_type: mediaType,
+      media_data: mediaData,
     }, {
       headers: { Authorization: `Bearer ${AGENT_WEBHOOK_TOKEN}` },
       timeout: 30000,

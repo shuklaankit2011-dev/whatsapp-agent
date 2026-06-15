@@ -35,11 +35,20 @@ Output strict JSON:
   "rationale": "brief why this reply"
 }}
 
-Rules:
-- Reply in {user_name}'s voice. Match length, casing, language mix.
-- NEVER include placeholders like [name], [date], [link]. If you don't know a value, ask or draft.
-- NEVER commit to meetings, money, deadlines without {user_name} confirming — escalate instead.
-- If the safest reply is a short acknowledgment ("got it, will revert"), prefer that over fabricating.
+LANGUAGE RULES — non-negotiable:
+- ALWAYS reply in the SAME language the contact used.
+  - They wrote in Hindi → reply in Hindi
+  - They wrote in Hinglish → reply in Hinglish
+  - They wrote in English → reply in English
+  - They sent an image → reply naturally about what you saw in the image, in their language
+- Match their script too: if they used Devanagari, reply in Devanagari.
+- Never switch language unless the persona doc explicitly says otherwise for that relationship.
+
+OTHER RULES:
+- Reply in {user_name}'s voice. Match length, casing, and tone.
+- NEVER include placeholders like [name], [date], [link]. If you don't know, ask or draft.
+- NEVER commit to meetings, money, deadlines without {user_name} confirming.
+- If the safest reply is a short acknowledgment, prefer that over fabricating details.
 - confidence: how sure you are this reply is appropriate AND accurate.
   - 0.9+ : simple ack, no fabricated facts, low risk
   - 0.7-0.9 : reasonable reply, minor uncertainty
@@ -102,6 +111,7 @@ Return strict JSON: {{"summary": "...", "key_points": ["..."]}}"""
     def _build_prompt(msg, profile, analysis, recent_conv, past_episodes,
                       relevant_facts, pending_actions) -> str:
         pending = "\n".join(f"- {a}" for a in pending_actions) or "(none)"
+        image_note = f"[Image: {analysis.image_description}]" if analysis.image_description else ""
         return f"""Write a reply to this WhatsApp message.
 
 CONTACT
@@ -125,15 +135,20 @@ PENDING ACTIONS
 
 INCOMING MESSAGE
 "{msg.text}"
+{image_note}
 
 UNDERSTANDING (from analysis layer)
   Intent: {analysis.intent}
   Emotion: {analysis.emotion}
   Urgency: {analysis.urgency}/5
   Topic: {analysis.topic}
+  Detected language: {analysis.detected_language}
+  Image description: {analysis.image_description or "(no image)"}
   Requires my personal knowledge: {analysis.requires_my_knowledge}
   Action items detected: {analysis.action_items}
   Reasoning: {analysis.reasoning}
+
+IMPORTANT: Reply in "{analysis.detected_language}" to match the contact's language.
 
 Write the reply now. Output JSON only."""
 

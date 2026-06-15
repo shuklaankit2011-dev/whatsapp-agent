@@ -70,6 +70,8 @@ class BridgePayload(BaseModel):
     message_id: Optional[str] = None
     is_group: bool = False
     group_name: Optional[str] = None
+    media_type: Optional[str] = None
+    media_data: Optional[str] = None
 
 
 @app.post("/webhook/bridge")
@@ -83,7 +85,8 @@ async def bridge_webhook(
     msg = IncomingMessage(
         contact_phone=payload.phone, contact_name=payload.name, text=payload.text,
         message_id=payload.message_id, is_group=payload.is_group,
-        group_name=payload.group_name,
+        group_name=payload.group_name, media_type=payload.media_type,
+        media_data=payload.media_data,
     )
     result = orchestrator.handle(msg)
     return {"ok": True, "result": result}

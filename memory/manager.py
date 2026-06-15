@@ -75,8 +75,8 @@ class MemoryManager:
         return {
             "profile": profile,
             "recent_conversation": self.short_term.render(phone),
-            "past_episodes": self.episodic.render(phone, limit=3),
-            "relevant_facts": self.semantic.render(query, phone, top_k=5),
+            "past_episodes": self.episodic.render(phone, limit=6),
+            "relevant_facts": self.semantic.render(query, phone, top_k=10),
             "pending_actions": self.profile.get_pending_actions(phone),
             "turn_count": self.profile.turn_count(phone),
         }
